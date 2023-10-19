@@ -4,11 +4,30 @@
 #include <string.h>
 #include <unistd.h>
 
+typedef enum {
+    META_COMMAND_SUCCESS,
+    META_COMMAND_UNRECOGNISED_COMMAND
+} MetaCommandResult;
+
+typedef enum {
+    PREPARE_SUCCESS,
+    PREPARE_UNRECOGNISED_STATEMENT
+} PrepareResult;
+
+typedef enum {
+    STATEMENT_INSERT,
+    STATEMENT_SELECT
+} StatementType;
+
 typedef struct {
     char *buffer;          // pointer to buffer
     size_t buffer_length;  // size of buffer
     ssize_t input_length;  // bytes currently in buffer
 } InputBuffer;
+
+typedef struct {
+    StatementType type;
+} Statement;
 
 // construct a new input buffer
 InputBuffer *new_input_buffer() {
@@ -38,6 +57,27 @@ void read_input(InputBuffer *input_buffer) {
     input_buffer->input_length = bytes_read - 1;  // account for removed newline character
 }
 
+MetaCommandResult do_meta_command(InputBuffer *input_butter) {
+    if (strcmp(input_butter->buffer, ".exit") == 0) {
+        close_input_buffer(input_butter);
+        exit(EXIT_SUCCESS);
+    } else {
+        return META_COMMAND_UNRECOGNISED_COMMAND;
+    }
+}
+
+PrepareResult prepare_statement(InputBuffer *input_buffer, Statement *statement) {
+    if (strncmp(input_buffer->buffer, "insert", 6) == 0) {
+        statement->type = STATEMENT_INSERT;
+        return PREPARE_SUCCESS;
+    } else if (strcmp(input_buffer->buffer, "select") == 0) {
+        statement->type = STATEMENT_SELECT;
+        return PREPARE_SUCCESS;
+    }
+
+    return PREPARE_UNRECOGNISED_STATEMENT;
+}
+
 // print REPL prompt
 void print_prompt() { printf("db > "); }
 
@@ -47,11 +87,24 @@ int main(int argc, char **argv) {
         print_prompt();
         read_input(input_buffer);
 
-        if (strcmp(input_buffer->buffer, ".exit") == 0) {
-            close_input_buffer(input_buffer);
-            exit(EXIT_SUCCESS);
-        } else {
-            printf("Unrecognised command: '%s'\n", input_buffer->buffer);
+        if (input_buffer->buffer[0] == '.') {
+            switch (do_meta_command(input_buffer)) {
+                case (META_COMMAND_SUCCESS):
+                    continue;
+                case (META_COMMAND_UNRECOGNISED_COMMAND):
+                    printf("Unrecognised command: '%s'.\n",
+                           input_buffer->buffer);
+                    continue;
+            }
+        }
+        Statement statement;
+        switch (prepare_statement(input_buffer, &statement)) {
+            case (PREPARE_SUCCESS):
+                continue;
+            case (PREPARE_UNRECOGNISED_STATEMENT):
+                printf("unrecognised keyword at start of: '%s'.\n",
+                       input_buffer->buffer);
+                continue;
         }
     }
 }
