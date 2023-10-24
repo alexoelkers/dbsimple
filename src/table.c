@@ -53,19 +53,22 @@ void *row_slot(Table *table, uint32_t row_num) {
     }
     uint32_t row_offset = row_num % ROWS_PER_PAGE;
     uint32_t byte_offset = row_offset * ROW_SIZE;
+    printf("row pointer: %p\n", (page + byte_offset));
     return page + byte_offset;
 }
 
 void serialise_row(Row *source, void *destination) {
-    memcpy(destination + ID_OFFSET, &(source->id), ID_SIZE);  // ID
-    memcpy(destination + USERNAME_OFFSET, &(source->username), USERNAME_SIZE);
-    memcpy(destination + EMAIL_OFFSET, &(source->email), EMAIL_SIZE);
+    printf("row pointer: %p\n", destination);
+    memcpy((destination + ID_OFFSET), &(source->id), ID_SIZE);  // ID
+    memcpy((destination + USERNAME_OFFSET), &(source->username), USERNAME_SIZE);
+    memcpy((destination + EMAIL_OFFSET), &(source->email), EMAIL_SIZE);
 }
 
 void deserialise_row(void *source, Row *destination) {
-    memcpy(&(destination->id), source + ID_OFFSET, ID_SIZE);  // ID
-    memcpy(&(destination->username), source + USERNAME_OFFSET, USERNAME_SIZE);
-    memcpy(&(destination->email), source + EMAIL_OFFSET, EMAIL_SIZE);
+    printf("row pointer: %p\n", source);
+    memcpy(&(destination->id), (source + ID_OFFSET), ID_SIZE);  // ID
+    memcpy(&(destination->username), (source + USERNAME_OFFSET), USERNAME_SIZE);
+    memcpy(&(destination->email), (source + EMAIL_OFFSET), EMAIL_SIZE);
 }
 
 void print_row(Row *row) {
