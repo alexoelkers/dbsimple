@@ -61,9 +61,10 @@ void read_input(InputBuffer *input_buffer) {
 
     if (bytes_read <= 0) {
         printf("Error reading input\n");
+        close_input_buffer(input_buffer);
         exit(EXIT_FAILURE);
     }
-    input_buffer->buffer[bytes_read - 1] = 0;     // remove new line character from buffer
+    input_buffer->buffer[bytes_read - 1] = 0;     // remove newline character from buffer
     input_buffer->input_length = bytes_read - 1;  // account for removed newline character
 }
 
